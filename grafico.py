@@ -3,26 +3,36 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 
-# Função do OHA original (voltando a oscilar estritamente em torno de zero)
-def oha(t, A, b, w, phi):
+def oha(t, A, b, w, phi): 
     return A * np.exp(-b * t) * np.cos(w * t - phi)
 
-# Lê os dados da tabela (que já estão corrigidos e centralizados no zero)
 dados = pd.read_csv('dados.csv')
 t = dados['t'].values
 x = dados['x'].values
 
 
 #chutes iniciais dos parâmetros
-chute_A = np.max(x)       
-chute_b = 0.002           
-chute_w = 5.0             
-chute_phi = 0.0     
+chute_A = np.max(np.abs(x))
+chute_b = 0.001
+
+# Frequência Angular via Transformada de Fourier:
+N = len(t)
+dt = np.mean(np.diff(t)) 
+frequencias = np.fft.rfftfreq(N, d=dt)
+espectro = np.abs(np.fft.rfft(x))
+frequencia_dominante = frequencias[np.argmax(espectro)]
+
+chute_w = 2 * np.pi * frequencia_dominante
+chute_phi = 0.0 
 
 chute_inicial = [chute_A, chute_b, chute_w, chute_phi]
 
-popt, pcov = curve_fit(oha, t, x, p0=chute_inicial)
+limite_inferior = [chute_A * 0.5, 0.0, chute_w * 0.8, -np.pi]
+limite_superior = [chute_A * 1.5, 1.0, chute_w * 1.2,  np.pi]
+
+popt, pcov = curve_fit(oha, t, x, p0=chute_inicial, bounds=(limite_inferior, limite_superior))
 A_otim, b_otim, w_otim, phi_otim = popt
+
 
 #como é um valor muito pequeno de b, utiliza-se a equação Q = (m*wo)/gamma
 #considerando b = j/2m, e considerando que pra amortecimentos pequenos w=~wo
