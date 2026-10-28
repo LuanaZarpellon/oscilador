@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
+import csv
 
 #botar o video na mesma pasta desse código, inserir o nome do video entre as aspas
 video = 'pendulo.mp4'
@@ -10,6 +10,7 @@ fps = videoCapture.get(cv.CAP_PROP_FPS)
 
 #ARMAZENA DADOS PRO GRÁFICO
 posicao_x=[]
+posicao_y=[]
 tempos=[]
 n_frames = 0
 
@@ -18,6 +19,7 @@ while True:
     ret, frame = videoCapture.read() #vai retornar um booleano para caso o frame foi obtido ou não
 
     if not ret: break #interrompe o loop caso falhou em pegar o frame
+
 
     #corta o video para não aparecer o quadro no fundo, evitando de aparecer circulos indesejados
     altura, largura = frame.shape[:2]
@@ -40,11 +42,13 @@ while True:
             cv.circle(frame_cortado, (x,y), r, (0,255,0), 2)
             cv.circle(frame_cortado, (x,y), 2, (0,0,255),3)
 
-        #salva as posições x do pendulo, e salva os tempos através da fórmula de calcular o tempo de um video através do fps 
+        #salva as posições x, y do pendulo, e salva os tempos através da fórmula de calcular o tempo de um video através do fps 
         posicao_x.append(x)
+        posicao_y.append(y)
         tempos.append(n_frames/fps)  
 
-        n_frames+=1
+
+    n_frames+=1
 
 
     cv.imshow("pendulo", frame_cortado)
@@ -55,19 +59,9 @@ while True:
 videoCapture.release() 
 cv.destroyAllWindows()
 
-
-#gera o gráfico de oscilacao posição x tempo
 if tempos:
-    plt.figure(figsize=(10, 6))
-
-    # Gráfico do Movimento Horizontal 
-    plt.subplot(2, 1, 1)
-    plt.plot(tempos, posicao_x, color='blue', linewidth=2, label='Gráfico OHA')
-    plt.title('Gráfico de oscilação posição horizontal x tempo')
-    plt.ylabel('x')
-    plt.xlabel('tempo')
-    plt.grid(True)
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
+    with open('dados.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['x', 'y', 't'])
+        for x, y, t in zip(posicao_x, posicao_y, tempos):
+            writer.writerow([x, y, t])
