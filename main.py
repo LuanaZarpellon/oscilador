@@ -10,7 +10,12 @@ while True:
 
     if not ret: break #interrompe o loop caso falhou em pegar o frame
 
-    cv.imshow("pendulo", frame)
+    #transforme o video em preto e branco, e depois usa o gaussian blur. Ajuda na remoção de ruido do video
+    cinza = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    blur = cv.GaussianBlur(cinza, (17,17), 0) 
+
+
+    cv.imshow("pendulo", blur)
     if cv.waitKey(1) & 0xFF == ord('q'): break #espera um milissegundo, e se apertar a tecla q encerra o programa
 
 
