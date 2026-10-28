@@ -43,7 +43,7 @@ while True:
         tempos.append(n_frames/fps)  
 
 
-    n_frames+=1
+        n_frames+=1
 
 
     cv.imshow("pendulo", frame)
